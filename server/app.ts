@@ -2,7 +2,17 @@ import express, { type Request, Response, NextFunction } from "express";
 import { runMigrations } from "stripe-replit-sync";
 import { createServer, type Server } from "http";
 import { registerRoutes } from "./routes.js";
-import { log } from "./vite.js";
+
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 
 export function initStripeSchema() {
   const databaseUrl = process.env.DATABASE_URL;
