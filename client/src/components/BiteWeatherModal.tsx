@@ -28,8 +28,8 @@ interface BiteWeatherData {
     precip: number;
     pressureTrend: string;
   };
-  sunrise?: string;
-  sunset?: string;
+  sunrise?: string | number | null;
+  sunset?: string | number | null;
   note?: string;
 }
 
@@ -60,8 +60,8 @@ export function BiteWeatherModal({
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
   };
 
-  const formatTime = (isoString: string, tz?: string) => {
-    const date = new Date(isoString);
+  const formatTime = (value: string | number, tz?: string) => {
+    const date = new Date(value);
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: tz });
   };
 

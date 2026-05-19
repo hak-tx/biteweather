@@ -2357,7 +2357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestedTime: datetime,
         windowStart: new Date(windowStart).toISOString(),
         windowEnd: new Date(windowEnd).toISOString(),
-        data: windowData.map(item => ({
+        data: windowData.map((item: any) => ({
           time: item.time,
           precipitation: item.precipitation,
           precipProbability: item.precipProbability,

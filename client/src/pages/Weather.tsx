@@ -148,6 +148,8 @@ type DayFishingForecast = {
   tideCoeff: number | null;
   weather: {
     temp: number;
+    tempMin: number;
+    tempMax: number;
     windSpeed: number;
     windDir?: number;
     clouds: number;
@@ -1077,16 +1079,16 @@ export default function WeatherPage() {
       const res = await fetch(`/api/geolocate?lat=${latitude}&lon=${longitude}`);
       if (!res.ok) throw new Error("Failed to geolocate");
       
-      const data = await res.json();
-      if (weatherData.location) {
-        setLocation(weatherData.location);
-        setSearchQuery(weatherData.location);
+      const data: { location?: string } = await res.json();
+      if (data.location) {
+        setLocation(data.location);
+        setSearchQuery(data.location);
         
         // Add to recent searches
         const newLocation = {
           id: Date.now(),
-          name: weatherData.location,
-          query: weatherData.location,
+          name: data.location,
+          query: data.location,
           lat: 0,
           lon: 0,
           isFavorite: false
@@ -3440,8 +3442,8 @@ export default function WeatherPage() {
                             const highDatetimes = new Set<string>();
                             const lowDatetimes = new Set<string>();
                             highLowByDay.forEach(data => {
-                              highDatetimes.add(weatherData.maxTempDatetime);
-                              lowDatetimes.add(weatherData.minTempDatetime);
+                              highDatetimes.add(data.maxTempDatetime);
+                              lowDatetimes.add(data.minTempDatetime);
                             });
                             
                             return (
