@@ -72,21 +72,16 @@ export function FishingForecastPanel({ location, provider = 'visualcrossing' }: 
   const { data, isLoading, error } = useQuery<{ forecast: DayForecast[] }>({
     queryKey: ['fishingForecast', 'v3-daytime-only', location, provider], // v3 = cache bust + daytime filtering
     queryFn: async () => {
-      // Add timestamp to bypass ALL caches (Service Worker, HTTP cache, etc.)
-      const timestamp = Date.now();
-      const url = `/api/forecast/fishing?location=${encodeURIComponent(location)}&provider=${provider}&_t=${timestamp}`;
-      console.log('[FishingForecast] Fetching from:', url);
-      const response = await fetch(url, { cache: 'no-store' }); // Disable HTTP cache
+      const url = `/api/forecast/fishing?location=${encodeURIComponent(location)}&provider=${provider}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch fishing forecast');
       }
-      const result = await response.json();
-      console.log('[FishingForecast] Received data:', result);
-      return result;
+      return response.json();
     },
     placeholderData: (previousData) => previousData,
     enabled: !!location, // Only fetch if location exists
-    refetchOnMount: true, // Always refetch on mount to get latest data
+    staleTime: 30 * 60 * 1000,
   });
 
   if (isLoading) {

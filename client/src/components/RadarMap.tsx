@@ -18,6 +18,7 @@ export function RadarMap({ latitude, longitude, isPremium = true, isAuthenticate
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const radarLayersRef = useRef<L.TileLayer[]>([]);
+  const activeRadarLayerRef = useRef<L.TileLayer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [totalFrames, setTotalFrames] = useState(0);
@@ -27,6 +28,23 @@ export function RadarMap({ latitude, longitude, isPremium = true, isAuthenticate
   const [radarOpacity, setRadarOpacity] = useState(0.6);
   const [radarSource, setRadarSource] = useState<'iem'>('iem');
   const animationRef = useRef<NodeJS.Timeout | null>(null);
+
+  const showRadarFrame = (frameIndex: number, opacity = radarOpacity) => {
+    const map = mapRef.current;
+    const nextLayer = radarLayersRef.current[frameIndex];
+    if (!map || !nextLayer) return;
+
+    if (activeRadarLayerRef.current && activeRadarLayerRef.current !== nextLayer) {
+      activeRadarLayerRef.current.remove();
+    }
+
+    if (!map.hasLayer(nextLayer)) {
+      nextLayer.addTo(map);
+    }
+
+    nextLayer.setOpacity(opacity);
+    activeRadarLayerRef.current = nextLayer;
+  };
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -92,7 +110,6 @@ export function RadarMap({ latitude, longitude, isPremium = true, isAuthenticate
         console.warn(`IEM tile load error for frame ${idx}:`, error);
       });
       
-      layer.addTo(map);
       radarLayersRef.current.push(layer);
     });
 
@@ -102,9 +119,7 @@ export function RadarMap({ latitude, longitude, isPremium = true, isAuthenticate
     // Show the most recent frame (last index) by default
     const mostRecentFrameIndex = timeOffsets.length - 1;
     setCurrentFrame(mostRecentFrameIndex);
-    if (radarLayersRef.current[mostRecentFrameIndex]) {
-      radarLayersRef.current[mostRecentFrameIndex].setOpacity(radarOpacity);
-    }
+    showRadarFrame(mostRecentFrameIndex, radarOpacity);
 
     // Cleanup
     return () => {
@@ -113,6 +128,7 @@ export function RadarMap({ latitude, longitude, isPremium = true, isAuthenticate
       }
       radarLayersRef.current.forEach(layer => layer.remove());
       radarLayersRef.current = [];
+      activeRadarLayerRef.current = null;
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -134,10 +150,7 @@ export function RadarMap({ latitude, longitude, isPremium = true, isAuthenticate
       setCurrentFrame(prev => {
         const next = (prev + 1) % totalFrames;
         
-        // Toggle layer visibility
-        radarLayersRef.current.forEach((layer, idx) => {
-          layer.setOpacity(idx === next ? radarOpacity : 0);
-        });
+        showRadarFrame(next, radarOpacity);
         
         return next;
       });
@@ -154,18 +167,14 @@ export function RadarMap({ latitude, longitude, isPremium = true, isAuthenticate
   const handleSliderChange = (value: number) => {
     setCurrentFrame(value);
     
-    // Toggle layer visibility
-    radarLayersRef.current.forEach((layer, idx) => {
-      layer.setOpacity(idx === value ? radarOpacity : 0);
-    });
+    showRadarFrame(value, radarOpacity);
   };
 
   // Handle opacity change
   const handleOpacityChange = (value: number) => {
     setRadarOpacity(value);
     
-    // Update current frame opacity
-    radarLayersRef.current[currentFrame]?.setOpacity(value);
+    showRadarFrame(currentFrame, value);
   };
 
   // Check if fullscreen is supported

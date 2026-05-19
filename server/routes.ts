@@ -2271,6 +2271,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Parse the requested datetime in the location's timezone
       const requestDateTime = DateTime.fromISO(datetime, { zone: timezone });
       const dateStr = requestDateTime.toISODate() || requestDateTime.toFormat('yyyy-MM-dd');
+      const latRounded = Math.round(lat * 1000) / 1000;
+      const lonRounded = Math.round(lon * 1000) / 1000;
+      const cacheKey = getCacheKey(
+        'precip-15min',
+        latRounded.toString(),
+        lonRounded.toString(),
+        dateStr,
+        requestDateTime.startOf('hour').toISO() || datetime,
+        timezone,
+        Number.isFinite(hourlyPrecip) ? hourlyPrecip.toFixed(4) : 'na',
+        Number.isFinite(hourlyProb) ? hourlyProb.toFixed(2) : 'na',
+      );
+
+      const cached = getCached<any>(cacheKey);
+      if (cached) {
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.setHeader('X-Cache', 'HIT');
+        return res.json(cached);
+      }
 
       // Fetch 15-minute data from Open-Meteo to get the precipitation pattern
       const params = new URLSearchParams({
@@ -2360,7 +2379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const total = windowData.reduce((sum: number, item: any) => sum + item.precipitation, 0);
       const maxChance = Math.max(...windowData.map((item: any) => item.precipProbability || 0));
 
-      res.json({
+      const result = {
         requestedTime: datetime,
         windowStart: new Date(windowStart).toISOString(),
         windowEnd: new Date(windowEnd).toISOString(),
@@ -2375,7 +2394,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           maxChance: maxChance
         },
         timezone: data.timezone
-      });
+      };
+
+      setCached(cacheKey, result, 15 * 60);
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.setHeader('X-Cache', 'MISS');
+      res.json(result);
 
     } catch (error: any) {
       console.error("15-min precipitation fetch failed:", error);
@@ -2847,11 +2871,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     try {
+      const normalizedQuery = query.toLowerCase().trim();
+      const cacheKey = getCacheKey('search', normalizedQuery);
+      const cached = getCached<any[]>(cacheKey);
+      if (cached) {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('X-Cache', 'HIT');
+        return res.json(cached);
+      }
+
       const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`;
       const response = await fetch(url);
+      if (!response.ok) throw new Error(`Search API failed: ${response.status}`);
       const data = await response.json();
       
       if (!data.results) {
+        setCached(cacheKey, [], 24 * 60 * 60);
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('X-Cache', 'MISS');
         return res.json([]);
       }
 
@@ -2863,6 +2900,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         label: `${item.name}, ${item.admin1 ? item.admin1 + ', ' : ''}${item.country}`
       }));
 
+      setCached(cacheKey, suggestions, 24 * 60 * 60);
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('X-Cache', 'MISS');
       res.json(suggestions);
     } catch (error) {
       console.error("Search API failed:", error);

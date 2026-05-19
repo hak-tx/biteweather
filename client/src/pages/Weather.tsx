@@ -315,14 +315,14 @@ export default function WeatherPage() {
   const { data: fishingForecastData } = useQuery<{ forecast: DayFishingForecast[] }>({
     queryKey: ['fishingForecast', 'v3-daytime-only', location, provider],
     queryFn: async () => {
-      const timestamp = Date.now();
-      const url = `/api/forecast/fishing?location=${encodeURIComponent(location)}&provider=${provider}&_t=${timestamp}`;
-      const response = await fetch(url, { cache: 'no-store' });
+      const url = `/api/forecast/fishing?location=${encodeURIComponent(location)}&provider=${provider}`;
+      const response = await fetch(url);
       if (!response.ok) return { forecast: [] };
       return response.json();
     },
     enabled: !!location,
     placeholderData: (previousData) => previousData,
+    staleTime: 30 * 60 * 1000,
   });
 
   // Removed auto-expand - user must manually open bite forecast
@@ -346,10 +346,7 @@ export default function WeatherPage() {
       const locationName = weatherData?.location!;
       const lat = weatherData?.latitude!;
       const lon = weatherData?.longitude!;
-      const res = await fetch(`/api/moon-phases?location=${encodeURIComponent(locationName)}&lat=${lat}&lon=${lon}`, {
-        // Disable browser cache to ensure fresh data for each location
-        cache: 'no-cache'
-      });
+      const res = await fetch(`/api/moon-phases?location=${encodeURIComponent(locationName)}&lat=${lat}&lon=${lon}`);
       if (!res.ok) return null;
       return res.json();
     },
@@ -361,8 +358,8 @@ export default function WeatherPage() {
              weatherData.location !== undefined &&
              weatherData.latitude !== undefined && 
              weatherData.longitude !== undefined,
-    // Don't use placeholder data - show loading state instead to avoid stale timezone
-    staleTime: 0,
+    // Server response varies by location/coords and is safe to reuse for the day.
+    staleTime: 60 * 60 * 1000,
   });
   
   // Extract moon data and timezone from response
