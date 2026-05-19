@@ -1775,8 +1775,15 @@ async function fetchMoonPhases(location: string, lat: number, lon: number): Prom
 // --- Routes Registration ---
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup authentication
-  await setupAuth(app);
+  if (process.env.DATABASE_URL && process.env.SESSION_SECRET) {
+    await setupAuth(app);
+  } else {
+    console.warn("DATABASE_URL or SESSION_SECRET not set - auth and account features disabled");
+    app.use((req: any, _res, next) => {
+      req.isAuthenticated = () => false;
+      next();
+    });
+  }
 
   const router = Router();
 
