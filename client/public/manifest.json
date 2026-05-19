@@ -1,0 +1,26 @@
+{
+  "name": "BiteWeather - Fishing Weather Forecast",
+  "short_name": "BiteWeather",
+  "description": "The ultimate fishing weather app. Get precise solunar feeding times, tide predictions, moon phases, and hourly weather forecasts.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "minimal-ui",
+  "orientation": "any",
+  "theme_color": "#1e293b",
+  "background_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["weather", "sports", "utilities"],
+  "permissions": ["geolocation"]
+}
