@@ -1,16 +1,16 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage } from "./storage.js";
 import { Router } from "express";
 import express from "express";
-import { setupAuth, isAuthenticated, optionalAuth } from "./directAuth";
-import { stripeService } from "./stripeService";
-import { getStripePublishableKey, getUncachableStripeClient } from "./stripeClient";
+import { setupAuth, isAuthenticated, optionalAuth } from "./directAuth.js";
+import { stripeService } from "./stripeService.js";
+import { getStripePublishableKey, getUncachableStripeClient } from "./stripeClient.js";
 import { DateTime } from "luxon";
 import * as SunCalcModule from "suncalc3";
 import memoize from "memoizee";
-import { FishingForecastService } from "./fishingForecast";
-import { getCacheKey, getCached, setCached } from "./cache";
+import { FishingForecastService } from "./fishingForecast.js";
+import { getCacheKey, getCached, setCached } from "./cache.js";
 
 // Normalize suncalc3 import - the library may expose API on .default in some module systems
 const SunCalc = (SunCalcModule as any).default ?? SunCalcModule;

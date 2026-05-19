@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { createApp, initStripeSchema } from "../server/app";
+import { createApp, initStripeSchema } from "../server/app.js";
 
 const appPromise = createApp().then(({ app }) => {
   initStripeSchema();

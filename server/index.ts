@@ -1,5 +1,5 @@
-import { createApp, initStripeSchema } from "./app";
-import { setupVite, serveStatic, log } from "./vite";
+import { createApp, initStripeSchema } from "./app.js";
+import { setupVite, serveStatic, log } from "./vite.js";
 
 (async () => {
   const { app, server } = await createApp();

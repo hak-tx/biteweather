@@ -1,8 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { runMigrations } from "stripe-replit-sync";
 import { createServer, type Server } from "http";
-import { registerRoutes } from "./routes";
-import { log } from "./vite";
+import { registerRoutes } from "./routes.js";
+import { log } from "./vite.js";
 
 export function initStripeSchema() {
   const databaseUrl = process.env.DATABASE_URL;
@@ -48,7 +48,7 @@ export async function createApp(): Promise<{ app: express.Express; server: Serve
           return res.status(200).json({ received: false, error: "Invalid payload format" });
         }
 
-        const { WebhookHandlers } = await import("./webhookHandlers");
+        const { WebhookHandlers } = await import("./webhookHandlers.js");
         const { uuid } = req.params;
         await WebhookHandlers.processWebhook(req.body as Buffer, sig, uuid);
 

@@ -1,5 +1,5 @@
-import { storage } from './storage';
-import { getUncachableStripeClient } from './stripeClient';
+import { storage } from './storage.js';
+import { getUncachableStripeClient } from './stripeClient.js';
 
 export class StripeService {
   async createCustomer(email: string, userId: string) {
