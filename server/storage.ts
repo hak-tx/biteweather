@@ -1,4 +1,4 @@
-import { locations, users, promotionCodes, promotionRedemptions, type Location, type InsertLocation, type User, type UpsertUser, type PromotionCode, type InsertPromotionCode, type PromotionRedemption } from "@shared/schema";
+import { locations, users, promotionCodes, promotionRedemptions, type Location, type InsertLocation, type User, type UpsertUser, type PromotionCode, type InsertPromotionCode, type PromotionRedemption } from "../shared/schema.js";
 import { db } from "./db.js";
 import { eq, desc, sql, and, gte, lte, or, isNull } from "drizzle-orm";
 
