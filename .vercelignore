@@ -1,4 +1,5 @@
 attached_assets
+ios
 node_modules
 dist
 .env
